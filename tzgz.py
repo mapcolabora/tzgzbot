@@ -12,7 +12,7 @@ def bus(bot, update, args):
         except Exception as e:
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nLa parada no existe o el servicio del ayuntamiento está caído.\n\nSi es de noche y el número de poste es correcto probablemente signifique que ya no pasan más buses por dicha parada hasta la mañana siguiente.', parse_mode='HTML')
         textoleido=''
-        textoleido = str(f.read(2000).decode('utf-8'))
+        textoleido = str(f.read().decode('utf-8'))
         #Web scraping
         #textoleidocoord = re.sub(r'.*"coordinates":\[',r'', textoleido)
         #coordx = re.sub(r',.*',r'', textoleidocoord)
@@ -35,7 +35,7 @@ def bus(bot, update, args):
         f.close()
         try:
             f = urllib.request.urlopen('http://overpass-api.de/api/interpreter?data=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A)%3B%0A%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B')
-            overpassleido = str(f.read(2000).decode('utf-8'))
+            overpassleido = str(f.read().decode('utf-8'))
         except Exception as e:
                 bot.sendMessage(chat_id=update.message.chat_id, text='Error en la consulta a Overpass API')
         name=''
@@ -109,7 +109,7 @@ def tram(bot, update, args):
             f = urllib.request.urlopen(url)
         except Exception as e:
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nLa parada no existe o el servicio del ayuntamiento está caído.\n\nSi es de noche y el número de poste es correcto probablemente signifique que ya no pasan más tranvías por dicha parada hasta la mañana siguiente.', parse_mode='HTML')
-        textoleido = str(f.read(2000).decode('utf-8'))
+        textoleido = str(f.read().decode('utf-8'))
         #Web scraping
         #textoleidocoord = re.sub(r'.*"coordinates":\[',r'', textoleido)
         #coordx = re.sub(r',.*',r'', textoleidocoord)
@@ -132,7 +132,7 @@ def tram(bot, update, args):
         f.close()
         try:
             f = urllib.request.urlopen('http://overpass-api.de/api/interpreter?data=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22railway%22%3D%22tram_stop%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B)%3Bout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B')
-            overpassleido = str(f.read(2000).decode('utf-8'))
+            overpassleido = str(f.read().decode('utf-8'))
         except Exception as e:
                 bot.sendMessage(chat_id=update.message.chat_id, text='Error en la consulta a Overpass API')
         name=''
