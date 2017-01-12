@@ -1,18 +1,21 @@
-import urllib.request, re
-from telegram.ext import Updater, CommandHandler
+import urllib.request, re#, json
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 def bus(bot, update, args):
     numposte = ' '.join(args)
     if numposte=='':
         bot.sendMessage(chat_id=update.message.chat_id, text='Uso: /bus <númerodeposte>')
     else:
-        url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/poste/tuzsa-'+numposte+'.json?rf=html&srsname=wgs84'
-        try:
-            f = urllib.request.urlopen(url)
+        try:#Consulta a overpass
+            g = urllib.request.urlopen('http://overpass-api.de/api/interpreter?data=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A)%3B%0A%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B')
+        except Exception as e:
+                bot.sendMessage(chat_id=update.message.chat_id, text='Error en la consulta a Overpass API')
+        try:#Consulta al Ayuntamiento
+            f = urllib.request.urlopen('http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/poste/tuzsa-'+numposte+'.json?rf=html&srsname=wgs84')
         except Exception as e:
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nLa parada no existe o el servicio del ayuntamiento está caído.\n\nSi es de noche y el número de poste es correcto probablemente signifique que ya no pasan más buses por dicha parada hasta la mañana siguiente.', parse_mode='HTML')
-        textoleido=''
-        textoleido = str(f.read().decode('utf-8'))
+        textoleido = str(f.read().decode('utf-8'))#Leer de la consulta al Ayto.
+        f.close()
         #Web scraping
         #textoleidocoord = re.sub(r'.*"coordinates":\[',r'', textoleido)
         #coordx = re.sub(r',.*',r'', textoleidocoord)
@@ -32,12 +35,8 @@ def bus(bot, update, args):
         textoleido=re.sub(r'CI1',r'Ci1', textoleido)
         textoleido=re.sub(r'CI2',r'Ci2', textoleido)
         textoleido=re.sub(r'PEAFLOR',r'PEÑAFLOR', textoleido)
-        f.close()
-        try:
-            f = urllib.request.urlopen('http://overpass-api.de/api/interpreter?data=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A)%3B%0A%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B')
-            overpassleido = str(f.read().decode('utf-8'))
-        except Exception as e:
-                bot.sendMessage(chat_id=update.message.chat_id, text='Error en la consulta a Overpass API')
+        overpassleido = str(g.read().decode('utf-8'))#Leer de overpass
+        g.close()
         name=''
         if re.search('["]name["]: ["]',overpassleido):
             name=re.sub(r'[\s\S]*["]name["]: ["]',r'', overpassleido)
@@ -48,12 +47,12 @@ def bus(bot, update, args):
             imagen=re.sub(r'[\s\S]*["]wikimedia_commons["]: ["]',r'', overpassleido)
             imagen=re.sub(r'["][\s\S]*',r'', imagen)
             imagen=re.sub(r' ',r'_', imagen)
-            imagen='\n<a href="https://commons.wikimedia.org/wiki/'+imagen+'">Imagen</a>'
+            imagen='\n<a href="https://commons.wikimedia.org/wiki/'+imagen+'">📷 Foto</a>'
         else:
             if re.search('["]mapillary["]: ["]',overpassleido):
                 imagen=re.sub(r'[\s\S]*["]mapillary["]: ["]',r'', overpassleido)
                 imagen=re.sub(r'["][\s\S]*',r'', imagen)
-                imagen='\n<a href="https://www.mapillary.com/app/?pKey='+imagen+'&focus=photo">Imagen</a>'
+                imagen='\n<a href="https://www.mapillary.com/app/?pKey='+imagen+'&focus=photo">📷 Foto</a>'
         wh=''
         if re.search('["]wheelchair["]: ["]',overpassleido):
             wh=re.sub(r'[\s\S]*["]wheelchair["]: ["]',r'', overpassleido)
@@ -81,8 +80,7 @@ def bus(bot, update, args):
         if re.search('["]acoustic["]: ["]voice_description["]',overpassleido):
             br='\n🔊 Parada dotada de información acústica'
         #Enviar mensaje
-        bot.sendMessage(chat_id=update.message.chat_id, text='Poste '+numposte+name+'\n<a href="http://overpass-turbo.eu/map.html?Q=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A)%3B%0A%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B%0A%7B%7Bstyle%3A%20%20%0Arelation%5Bpublic_transport%3Dstop_area%5D%20node%5Bhighway%3Dbus_stop%5D%7B%0A%20%20icon-width%3A%2020%3B%0A%20%20icon-image%3A%20url(%27http%3A%2F%2Fwww.zaragoza.es%2Fcontenidos%2Ficonos%2Fbus.png%27)%3B%0A%20%20text%3A%20name%3B%0A%7D%0Anode%5Bhighway%3Dbus_stop%5D%7B%0A%20%20icon-width%3A%2020%3B%0A%20%20icon-image%3A%20url(%27http%3A%2F%2Fwww.zaragoza.es%2Fcontenidos%2Ficonos%2Fbus.png%27)%3B%0A%20%20text%3A%20name%3B%0A%7D%0Arelation%20node%5Bhighway!%3Dbus_stop%5D%7B%0A%20%20opacity%3A%200%3B%0A%20%20fill-opacity%3A%200%3B%0A%7D%0Anode%5Bhighway!%3Dbus_stop%5D%7B%0A%20%20opacity%3A%200%3B%0A%20%20fill-opacity%3A%200%3B%0A%7D%0Away%7B%0A%20%20opacity%3A%200%3B%0A%20%20fill-opacity%3A%200%3B%0A%7D%0A%20%20%7D%7D">Mapa</a>'+imagen+wh+tp+br+ia+'\n\n'+textoleido, parse_mode='HTML', disable_web_page_preview=True)
-        f.close()
+        bot.sendMessage(chat_id=update.message.chat_id, text='Poste '+numposte+name+'\n<a href="http://overpass-turbo.eu/map.html?Q=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node[%22highway%22%3D%22bus_stop%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A%20%20relation[%22public_transport%22%3D%22stop_area%22][%22operator%22~%22^[Aa]uzsa|[Aa]uzsa$%22][~%22ref:[Aa]uzsa%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B%0A%20%20node(r)%3B%0A%20%20node._[%22highway%22%3D%22bus_stop%22]%3B%0A)%3B%0A%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B%0A%7B%7Bstyle%3A%20%20%0Arelation%5Bpublic_transport%3Dstop_area%5D%20node%5Bhighway%3Dbus_stop%5D%7B%0A%20%20icon-width%3A%2020%3B%0A%20%20icon-image%3A%20url(%27http%3A%2F%2Fwww.zaragoza.es%2Fcontenidos%2Ficonos%2Fbus.png%27)%3B%0A%20%20text%3A%20name%3B%0A%7D%0Anode%5Bhighway%3Dbus_stop%5D%7B%0A%20%20icon-width%3A%2020%3B%0A%20%20icon-image%3A%20url(%27http%3A%2F%2Fwww.zaragoza.es%2Fcontenidos%2Ficonos%2Fbus.png%27)%3B%0A%20%20text%3A%20name%3B%0A%7D%0Arelation%20node%5Bhighway!%3Dbus_stop%5D%7B%0A%20%20opacity%3A%200%3B%0A%20%20fill-opacity%3A%200%3B%0A%7D%0Anode%5Bhighway!%3Dbus_stop%5D%7B%0A%20%20opacity%3A%200%3B%0A%20%20fill-opacity%3A%200%3B%0A%7D%0Away%7B%0A%20%20opacity%3A%200%3B%0A%20%20fill-opacity%3A%200%3B%0A%7D%0A%20%20%7D%7D">🗺 Mapa</a>'+imagen+wh+tp+br+ia+'\n\n'+textoleido, parse_mode='HTML', disable_web_page_preview=True)
 
         #<a href="http://www.openstreetmap.org/?mlat='+coordy+'&mlon='+coordx+'#map=15/'+coordy+'/'+coordx+'">Mapa</a>
 
@@ -115,6 +113,7 @@ def tram(bot, update, args):
         #coordx = re.sub(r',.*',r'', textoleidocoord)
         #coordy = re.sub(r'].*',r'', textoleidocoord)
         #coordy = re.sub(r'.*,',r'', coordy)
+        textoleido = re.sub(r'ESPAA',r'ESPAÑA', textoleido)#Corregir error ESPAA -> ESPAÑA
         infotram = re.sub(r'.*"mensajes":\["',r'\n', textoleido)
         infotram = re.sub(r'","',r'\n', infotram)
         infotram = re.sub(r'"](\s|\S)*',r'', infotram)
@@ -145,14 +144,14 @@ def tram(bot, update, args):
             imagen=re.sub(r'[\s\S]*["]wikimedia_commons["]: ["]',r'', overpassleido)
             imagen=re.sub(r'["][\s\S]*',r'', imagen)
             imagen=re.sub(r' ',r'_', imagen)
-            imagen='\n<a href="https://commons.wikimedia.org/wiki/'+imagen+'">Imagen</a>'
+            imagen='\n<a href="https://commons.wikimedia.org/wiki/'+imagen+'">📷 Foto</a>'
         else:
             if re.search('["]mapillary["]: ["]',overpassleido):
                 imagen=re.sub(r'[\s\S]*["]mapillary["]: ["]',r'', overpassleido)
                 imagen=re.sub(r'["][\s\S]*',r'', imagen)
-                imagen='\n<a href="https://www.mapillary.com/app/?pKey='+imagen+'&focus=photo">Imagen</a>'
+                imagen='\n<a href="https://www.mapillary.com/app/?pKey='+imagen+'&focus=photo">📷 Foto</a>'
         #Enviar mensaje
-        bot.sendMessage(chat_id=update.message.chat_id, text='Parada '+numposte+name+imagen+'\n<a href="http://overpass-turbo.eu/map.html?Q=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22railway%22%3D%22tram_stop%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B)%3Bout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B%0A%7B%7Bstyle%3A%20%20%0Anode%5Brailway%3Dtram_stop%5D%7B%0A%20%20icon-width%3A%2020%3B%0A%20%20icon-image%3A%20url(%27http%3A%2F%2Fwww.zaragoza.es%2Fcontenidos%2Ficonos%2Ftranvia.png%27)%3B%0A%20%20text%3A%20name%3B%7D%20%20%7D%7D">Mapa</a>\n\n'+textoleido+infotram, parse_mode='HTML', disable_web_page_preview=True)
+        bot.sendMessage(chat_id=update.message.chat_id, text='Parada '+numposte+name+imagen+'\n<a href="http://overpass-turbo.eu/map.html?Q=[out%3Ajson][timeout%3A25]%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A%0A(%0A%20%20node[%22railway%22%3D%22tram_stop%22][%22ref%22~%22^0*'+numposte+'$|^0*'+numposte+'\D|\D0*'+numposte+'$%22](area.searchArea)%3B)%3Bout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B%0A%7B%7Bstyle%3A%20%20%0Anode%5Brailway%3Dtram_stop%5D%7B%0A%20%20icon-width%3A%2020%3B%0A%20%20icon-image%3A%20url(%27http%3A%2F%2Fwww.zaragoza.es%2Fcontenidos%2Ficonos%2Ftranvia.png%27)%3B%0A%20%20text%3A%20name%3B%7D%20%20%7D%7D">🗺 Mapa</a>\n\n'+textoleido+infotram, parse_mode='HTML', disable_web_page_preview=True)
         f.close()
 
 def mapatransporte(bot, update):
@@ -167,8 +166,54 @@ def mapataxi(bot, update):
 def ruta(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://node1.idezar.es/RutometroIDEZarApp/rutometro.jsp?language=ES">Usar el calculador de rutas del Ayuntamiento</a>', parse_mode='HTML', disable_web_page_preview=True)
 
+def busquedaParadas(bot, update):
+    latitud=format(update.message.location.latitude)
+    longitud=format(update.message.location.longitude)
+    url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/poste.json?rf=html&results_only=false&srsname=wgs84&rows=5&point='+longitud+','+latitud+'&distance=200'
+    try:
+        f = urllib.request.urlopen(url)
+        url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia.json?rf=html&results_only=false&srsname=wgs84&rows=5&point='+longitud+','+latitud+'&distance=200'
+        try:
+            g = urllib.request.urlopen(url)
+        except Exception as e:
+            bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
+    except Exception as e:
+        bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
+    #jsonleido = json.loads(str(f.read().decode('utf-8')))
+    #print(jsonleido)
+    textoleidobus = str(f.read().decode('utf-8'))
+    nElementosbus = re.sub(r'(\s|\S)*"totalCount":',r'', textoleidobus)
+    nElementosbus = re.sub(r',(\s|\S)*',r'', nElementosbus)
+    if nElementosbus=="0":
+        textoleidobus='No hay paradas de bus a 200 metros de la ubicación\n'
+    else:
+        textoleidobus = re.sub(r'(\s|\S)*"result":\[',r'', textoleidobus)
+        textoleidobus = re.sub('\{"id":"tuzsa-',r'/bus ', textoleidobus)
+        textoleidobus = re.sub('\{"id":"rural-',r'CTAZ ', textoleidobus)
+        textoleidobus = re.sub('"title":"\(\d+\) ',r'', textoleidobus)
+        textoleidobus = re.sub('"geometry"(\s|\S)*png"\},',r'\n', textoleidobus)
+        textoleidobus = re.sub('"geometry"(\s|\S)*"\}\]\}',r'', textoleidobus)
+        textoleidobus = re.sub('",',r'\n', textoleidobus)
+        textoleidobus = re.sub(' Líneas',r'\nLíneas', textoleidobus)
 
-updater = Updater(#PONER TOKEN AQUÍ)#token de @tzgzbot para la API de Telegram
+    textoleidotram = str(g.read().decode('utf-8'))
+    nElementostram = re.sub(r'(\s|\S)*"totalCount":',r'', textoleidotram)
+    nElementostram = re.sub(r',(\s|\S)*',r'', nElementostram)
+    if nElementostram=="0":
+        textoleidotram='No hay paradas de tranvía a 200 metros de la ubicación'
+    else:
+        textoleidotram = re.sub(r'(\s|\S)*"result":\[',r'', textoleidotram)
+        textoleidotram = re.sub('\{"id":"',r'/tram ', textoleidotram)
+        textoleidotram = re.sub(r'","uri":"http://www.zaragoza.es/ciudad/viapublica/movilidad/detalle_Tranvia\?oid=\d+","title":"',r'\n', textoleidotram)
+        textoleidotram = re.sub('"geometry"(\s|\S)*"\},/',r'\n/', textoleidotram)
+        textoleidotram = re.sub('"geometry"(\s|\S)*"\}\]\}',r'', textoleidotram)
+        textoleidotram = re.sub('",',r'\n', textoleidotram)
+
+    bot.sendMessage(chat_id=update.message.chat_id, text='🚌 <b>Paradas de bus cercanas:</b>\n'+textoleidobus+'\n'+'🚊 <b>Paradas de tranvía cercanas:</b>\n'+textoleidotram, parse_mode='HTML', disable_web_page_preview=True)
+    f.close()
+
+
+updater = Updater('#PONER TOKEN AQUÍ')#token de @tzgzbot para la API de Telegram
 
 updater.dispatcher.add_handler(CommandHandler('bus', bus, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('tram', tram, pass_args=True))
@@ -178,6 +223,7 @@ updater.dispatcher.add_handler(CommandHandler('mapatransporte', mapatransporte))
 updater.dispatcher.add_handler(CommandHandler('mapabici', mapabici))
 updater.dispatcher.add_handler(CommandHandler('mapataxi', mapataxi))
 updater.dispatcher.add_handler(CommandHandler('ruta', ruta))
+updater.dispatcher.add_handler(MessageHandler(Filters.location|Filters.venue, busquedaParadas))
 
 updater.start_polling()
 updater.idle()
