@@ -1,4 +1,4 @@
-import urllib.request, re#, json
+import urllib.request, re, json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 def bus(bot, update, args):
@@ -179,7 +179,7 @@ def busquedaParadas(bot, update):
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
     except Exception as e:
         bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
-    #jsonleido = json.loads(str(f.read().decode('utf-8')))
+    #json.dumps(str(f.read().decode('utf-8')),jsonleido)
     #print(jsonleido)
     textoleidobus = str(f.read().decode('utf-8'))
     nElementosbus = re.sub(r'(\s|\S)*"totalCount":',r'', textoleidobus)
@@ -212,11 +212,32 @@ def busquedaParadas(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='🚌 <b>Paradas de bus cercanas:</b>\n'+textoleidobus+'\n'+'🚊 <b>Paradas de tranvía cercanas:</b>\n'+textoleidotram, parse_mode='HTML', disable_web_page_preview=True)
     f.close()
 
+def bizi(bot, update, args):
+    numposte = ' '.join(args)
+    if numposte=='':
+        bot.sendMessage(chat_id=update.message.chat_id, text="Uso: /bizi &lt;númerodeestación&gt;", parse_mode='HTML')
+    else:
+        url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/estacion-bicicleta/'+numposte+'.json?rf=html&srsname=wgs84'
+        try:
+            f = urllib.request.urlopen(url)
+        except Exception as e:
+            bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.')
+        jsonleido = json.loads(str(f.read().decode('utf-8')))
+        estado=jsonleido["estado"]
+        if estado=='OPN':
+            estado=' ✅'
+        elif estado=='':#TODO averiguar qué estado se pone cuando una estación no está operativa
+            estado=' ⚠️'
+        bot.sendMessage(chat_id=update.message.chat_id, text='Estación número '+jsonleido["id"]+estado+'\n'+jsonleido["title"]+'\n\n🚲Bicis disponibles: '+str(jsonleido["bicisDisponibles"])+'\n🚴Anclajes disponibles: '+str(jsonleido["anclajesDisponibles"]))
+        
+
 
 updater = Updater('#PONER TOKEN AQUÍ')#token de @tzgzbot para la API de Telegram
 
+
 updater.dispatcher.add_handler(CommandHandler('bus', bus, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('tram', tram, pass_args=True))
+updater.dispatcher.add_handler(CommandHandler('bizi', bizi, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('linbus', linbus, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('lintram', lintram))
 updater.dispatcher.add_handler(CommandHandler('mapatransporte', mapatransporte))
