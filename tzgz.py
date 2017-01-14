@@ -221,7 +221,7 @@ def bizi(bot, update, args):
         try:
             f = urllib.request.urlopen(url)
         except Exception as e:
-            bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.')
+            bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
         jsonleido = json.loads(str(f.read().decode('utf-8')))
         estado=jsonleido["estado"]
         if estado=='OPN':
