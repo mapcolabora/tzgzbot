@@ -231,7 +231,7 @@ def bizi(bot, update, args):
         bot.sendMessage(chat_id=update.message.chat_id, text='Estación número '+jsonleido["id"]+estado+'\n'+jsonleido["title"]+'\n\n🚲Bicis disponibles: '+str(jsonleido["bicisDisponibles"])+'\n🚴Anclajes disponibles: '+str(jsonleido["anclajesDisponibles"]))
         
 def help(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text='Bot sobre el transporte público en Zaragoza, "powered by" contribuidores de <a href="https://www.openstreetmap.org/">OpenStreetMap</a> y <a href="http://www.zaragoza.es/ciudad/risp/api.htm">datos abiertos del Ayuntamiento de Zaragoza</a>. Programado por @Robot8A\n\n<a href="https://github.com/mapcolabora/tzgzbot">Código fuente</a>, licencia GPLv3+\n\nAgradecimientos a <a href="http://pulsar.unizar.es/">Púlsar</a> por el hosting del bot.', parse_mode='HTML', disable_web_page_preview=True)
+    bot.sendMessage(chat_id=update.message.chat_id, text='Bot sobre el transporte público en Zaragoza, "powered by" contribuidores de <a href="https://www.openstreetmap.org/">OpenStreetMap</a> y <a href="http://www.zaragoza.es/ciudad/risp/api.htm">datos abiertos del Ayuntamiento de Zaragoza</a>. Programado por @Robot8A.\n\n<a href="https://github.com/mapcolabora/tzgzbot">Código fuente</a>, licencia GPLv3+\n\nImagen de perfil por @Robot8A, <a href="https://commons.wikimedia.org/wiki/File:Parada_bus_Balc%C3%B3n_San_L%C3%A1zaro.jpg">ver original</a>, CC-BY.\n\nAgradecimientos a <a href="http://pulsar.unizar.es/">Púlsar</a> por el hosting del bot.', parse_mode='HTML', disable_web_page_preview=True)
 
 updater = Updater('#PONER TOKEN AQUÍ')#token de @tzgzbot para la API de Telegram
 
