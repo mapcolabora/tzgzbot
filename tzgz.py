@@ -230,7 +230,8 @@ def bizi(bot, update, args):
             estado=' ⚠️'
         bot.sendMessage(chat_id=update.message.chat_id, text='Estación número '+jsonleido["id"]+estado+'\n'+jsonleido["title"]+'\n\n🚲Bicis disponibles: '+str(jsonleido["bicisDisponibles"])+'\n🚴Anclajes disponibles: '+str(jsonleido["anclajesDisponibles"]))
         
-
+def help(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text='Bot sobre el transporte público en Zaragoza, "powered by" contribuidores de OpenStreetMap y datos abiertos del Ayuntamiento de Zaragoza. Programado por @Robot8A\n\n<a href="https://github.com/mapcolabora/tzgzbot">Código fuente</a>, licencia GPLv3+\n\nAgradecimientos a Púlsar por el hosting del bot.', parse_mode='HTML', disable_web_page_preview=True)
 
 updater = Updater('#PONER TOKEN AQUÍ')#token de @tzgzbot para la API de Telegram
 
@@ -244,6 +245,7 @@ updater.dispatcher.add_handler(CommandHandler('mapatransporte', mapatransporte))
 updater.dispatcher.add_handler(CommandHandler('mapabici', mapabici))
 updater.dispatcher.add_handler(CommandHandler('mapataxi', mapataxi))
 updater.dispatcher.add_handler(CommandHandler('ruta', ruta))
+updater.dispatcher.add_handler(CommandHandler('help', help))
 updater.dispatcher.add_handler(MessageHandler(Filters.location|Filters.venue, busquedaParadas))
 
 updater.start_polling()
