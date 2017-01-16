@@ -1,5 +1,6 @@
 import urllib.request, re, json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from settings import TOKEN
 
 def bus(bot, update, args):
     numposte = ' '.join(args)
@@ -155,7 +156,7 @@ def tram(bot, update, args):
         f.close()
 
 def mapatransporte(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text='<a href="https://öpnvkarte.de/#-0.9033;41.6584;12">Mapa del transporte público en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
+    bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://bit.ly/buszaragoza">Mapa del transporte público en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
 
 def mapabici(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://bit.ly/Ziclabilidad">Mapa de la infraestructura ciclista en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
@@ -228,13 +229,12 @@ def bizi(bot, update, args):
             estado=' ✅'
         elif estado=='':#TODO averiguar qué estado se pone cuando una estación no está operativa
             estado=' ⚠️'
-        bot.sendMessage(chat_id=update.message.chat_id, text='Estación número '+jsonleido["id"]+estado+'\n'+jsonleido["title"]+'\n\n🚲Bicis disponibles: '+str(jsonleido["bicisDisponibles"])+'\n🚴Anclajes disponibles: '+str(jsonleido["anclajesDisponibles"]))
+        bot.sendMessage(chat_id=update.message.chat_id, text='Estación número '+jsonleido["id"]+estado+'\n'+jsonleido["title"]+'\n<a href="http://overpass-turbo.eu/map.html?Q=%5Bout%3Ajson%5D%5Btimeout%3A25%5D%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A(%0A%20%20node%5B%22amenity%22%3D%22bicycle_rental%22%5D%5B%22network%22%3D%22BiZi%22%5D%5B%22ref%22%3D%22'+numposte+'%22%5D(area.searchArea)%3B%0A)%3B%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B%0A%0A%0A%0A%7B%7Bstyle%3A%20%0A%20%20node%20%7B%20color%3Ared%3B%20fill-color%3Ared%3B%20fill-opacity%3A1%3B%20text%3A%20name%3B%20%20%7D%0A%20%7D%7D">🗺 Mapa</a>\n\n🚲Bicis disponibles: '+str(jsonleido["bicisDisponibles"])+'\n🚴Anclajes disponibles: '+str(jsonleido["anclajesDisponibles"]), parse_mode='HTML', disable_web_page_preview=True)#el link del mapa hace esta query overpass (cambiar 66 por el número de poste deseado): http://overpass-turbo.eu/s/lhL
         
 def help(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='Bot sobre el transporte público en Zaragoza, "powered by" contribuidores de <a href="https://www.openstreetmap.org/">OpenStreetMap</a> y <a href="http://www.zaragoza.es/ciudad/risp/api.htm">datos abiertos del Ayuntamiento de Zaragoza</a>. Programado por @Robot8A.\n\n<a href="https://github.com/mapcolabora/tzgzbot">Código fuente</a>, licencia GPLv3+\n\nImagen de perfil por @Robot8A, <a href="https://commons.wikimedia.org/wiki/File:Parada_bus_Balc%C3%B3n_San_L%C3%A1zaro.jpg">ver original</a>, CC-BY.\n\nAgradecimientos a <a href="http://pulsar.unizar.es/">Púlsar</a> por el hosting del bot.\n\n\n<b>FUNCIONES DEL BOT:</b>\n<b>/bus &lt;númerodeposte&gt;</b> - Tiempo real de los postes de bus\n<b>/linbus &lt;númerodelínea&gt;</b> - Plano de la línea de bus correspondiente\n<b>/tram &lt;númerodeposte&gt;</b> - Tiempo real de los postes del tranvía\n<b>/lintram</b> - Plano de la línea de tranvía\n<b>/bizi &lt;númerodeestación&gt;</b> - Estado en tiempo real de las estaciones de BiZi\n<b>/mapatransporte</b> - Mapa con todos los medios de transporte\n<b>/mapabici</b> - Mapa de la infraestructura ciclista en Zaragoza\n<b>/mapataxi</b> - Mapa de las paradas de Taxi y taxis en tiempo real\n<b>/ruta</b> - Usar el calculador de rutas del Ayuntamiento\n<b>/help</b> - Muestra este mensaje\n<b>Mandar ubicación</b> - Te devuelve un listado de las paradas a 200 metros de la ubicación', parse_mode='HTML', disable_web_page_preview=True)
 
-updater = Updater('#PONER TOKEN AQUÍ')#token de @tzgzbot para la API de Telegram
-
+updater = Updater(TOKEN)#token de @tzgzbot para la API de Telegram
 
 updater.dispatcher.add_handler(CommandHandler('bus', bus, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('tram', tram, pass_args=True))
@@ -246,6 +246,7 @@ updater.dispatcher.add_handler(CommandHandler('mapabici', mapabici))
 updater.dispatcher.add_handler(CommandHandler('mapataxi', mapataxi))
 updater.dispatcher.add_handler(CommandHandler('ruta', ruta))
 updater.dispatcher.add_handler(CommandHandler('help', help))
+updater.dispatcher.add_handler(CommandHandler('start', help))
 updater.dispatcher.add_handler(MessageHandler(Filters.location|Filters.venue, busquedaParadas))
 
 updater.start_polling()
