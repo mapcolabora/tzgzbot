@@ -168,50 +168,71 @@ def ruta(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://node1.idezar.es/RutometroIDEZarApp/rutometro.jsp?language=ES">Usar el calculador de rutas del Ayuntamiento</a>', parse_mode='HTML', disable_web_page_preview=True)
 
 def busquedaParadas(bot, update):
+    MAXELEMENTOS = 3#Máximo de paradas cercanas por medio de transporte, tiene que ser como mínimo 1
+    DISTANCIA = '200'#Distancia en metros desde la posición enviada, lo ponemos como string para evitarnos conversiones luego
     latitud=format(update.message.location.latitude)
     longitud=format(update.message.location.longitude)
-    url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/poste.json?rf=html&results_only=false&srsname=wgs84&rows=5&point='+longitud+','+latitud+'&distance=200'
+    url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/poste.json?rf=html&results_only=false&srsname=wgs84&rows='+str(MAXELEMENTOS)+'&point='+longitud+','+latitud+'&distance='+DISTANCIA
     try:
         f = urllib.request.urlopen(url)
-        url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia.json?rf=html&results_only=false&srsname=wgs84&rows=5&point='+longitud+','+latitud+'&distance=200'
+        url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia.json?rf=html&results_only=false&srsname=wgs84&rows='+str(MAXELEMENTOS)+'&point='+longitud+','+latitud+'&distance='+DISTANCIA
         try:
             g = urllib.request.urlopen(url)
+            url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/estacion-bicicleta.json?rf=html&results_only=false&srsname=wgs84&rows='+str(MAXELEMENTOS)+'&point='+longitud+','+latitud+'&distance='+DISTANCIA
+            try:
+                h = urllib.request.urlopen(url)
+            except Exception as e:
+                bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
         except Exception as e:
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
     except Exception as e:
         bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
-    #json.dumps(str(f.read().decode('utf-8')),jsonleido)
-    #print(jsonleido)
-    textoleidobus = str(f.read().decode('utf-8'))
-    nElementosbus = re.sub(r'(\s|\S)*"totalCount":',r'', textoleidobus)
-    nElementosbus = re.sub(r',(\s|\S)*',r'', nElementosbus)
-    if nElementosbus=="0":
-        textoleidobus='No hay paradas de bus a 200 metros de la ubicación\n'
+    #BUS
+    jsonleidobus = json.loads(str(f.read().decode('utf-8')))
+    nElementosbus = jsonleidobus["totalCount"]
+    textobus = ''
+    if nElementosbus==0:
+        textobus='No hay paradas de bus a '+DISTANCIA+' metros de la ubicación\n\n'
     else:
-        textoleidobus = re.sub(r'(\s|\S)*"result":\[',r'', textoleidobus)
-        textoleidobus = re.sub('\{"id":"tuzsa-',r'/bus ', textoleidobus)
-        textoleidobus = re.sub('\{"id":"rural-',r'CTAZ ', textoleidobus)
-        textoleidobus = re.sub('"title":"\(\d+\) ',r'', textoleidobus)
-        textoleidobus = re.sub('"geometry"(\s|\S)*png"\},',r'\n', textoleidobus)
-        textoleidobus = re.sub('"geometry"(\s|\S)*"\}\]\}',r'', textoleidobus)
-        textoleidobus = re.sub('",',r'\n', textoleidobus)
-        textoleidobus = re.sub(' Líneas',r'\nLíneas', textoleidobus)
-
-    textoleidotram = str(g.read().decode('utf-8'))
-    nElementostram = re.sub(r'(\s|\S)*"totalCount":',r'', textoleidotram)
-    nElementostram = re.sub(r',(\s|\S)*',r'', nElementostram)
-    if nElementostram=="0":
-        textoleidotram='No hay paradas de tranvía a 200 metros de la ubicación'
+        if nElementosbus>MAXELEMENTOS:
+            nElementosbus=MAXELEMENTOS#Limitamos a MAXELEMENTOS los resultados por medio de transporte
+        for i in range(nElementosbus):
+            textobus = textobus + jsonleidobus["result"][i]["id"] + '\n' + jsonleidobus["result"][i]["title"] + '\n\n'
+        textobus = re.sub('\n\(\d+\) ',r'\n', textobus)
+        textobus = re.sub('Líneas',r'\nLíneas', textobus)
+        textobus = re.sub('tuzsa-',r'/bus ', textobus)
+        textobus = re.sub('rural-',r'CTAZ ', textobus)
+    #TRANVÍA
+    jsonleidotram = json.loads(str(g.read().decode('utf-8')))
+    nElementostram = jsonleidotram["totalCount"]
+    textotram = ''
+    if nElementostram==0:
+        textotram='No hay paradas de tranvía a '+DISTANCIA+' metros de la ubicación\n\n'
     else:
-        textoleidotram = re.sub(r'(\s|\S)*"result":\[',r'', textoleidotram)
-        textoleidotram = re.sub('\{"id":"',r'/tram ', textoleidotram)
-        textoleidotram = re.sub(r'","uri":"http://www.zaragoza.es/ciudad/viapublica/movilidad/detalle_Tranvia\?oid=\d+","title":"',r'\n', textoleidotram)
-        textoleidotram = re.sub('"geometry"(\s|\S)*"\},/',r'\n/', textoleidotram)
-        textoleidotram = re.sub('"geometry"(\s|\S)*"\}\]\}',r'', textoleidotram)
-        textoleidotram = re.sub('",',r'\n', textoleidotram)
+        if nElementostram>MAXELEMENTOS:
+            nElementostram=MAXELEMENTOS#Limitamos a 5 los resultados por medio de transporte
+        for i in range(nElementostram):
+            if int(jsonleidotram["result"][i]["id"])%2==0:
+                sentido='\n(Sentido Av. Academia)'
+            else:
+                sentido='\n(Sentido Mago de Oz)'
+            textotram = textotram + '/tram '+ jsonleidotram["result"][i]["id"] + '\n' + jsonleidotram["result"][i]["title"] + sentido + '\n\n'
+    #BIZI
+    jsonleidobizi = json.loads(str(h.read().decode('utf-8')))
+    nElementosbizi = jsonleidobizi["totalCount"]
+    textobizi = ''
+    if nElementosbizi==0:
+        textobizi='No hay estaciones BiZi a '+DISTANCIA+' metros de la ubicación\n\n'
+    else:
+        if nElementosbizi>MAXELEMENTOS:
+            nElementostrambizi=MAXELEMENTOS#Limitamos a 5 los resultados por medio de transporte
+        for i in range(nElementosbizi):
+            textobizi = textobizi + '/bizi '+ jsonleidobizi["result"][i]["id"] + '\n' + jsonleidobizi["result"][i]["title"] + '\n\n'
 
-    bot.sendMessage(chat_id=update.message.chat_id, text='🚌 <b>Paradas de bus cercanas:</b>\n'+textoleidobus+'\n'+'🚊 <b>Paradas de tranvía cercanas:</b>\n'+textoleidotram, parse_mode='HTML', disable_web_page_preview=True)
+    bot.sendMessage(chat_id=update.message.chat_id, text='🚌 <b>Paradas de bus cercanas:</b>\n'+textobus+'🚊 <b>Paradas de tranvía cercanas:</b>\n'+textotram+'<b>🚲 Estaciones BiZi cercanas:</b>\n'+textobizi, parse_mode='HTML', disable_web_page_preview=True)
     f.close()
+    g.close()
+    h.close()
 
 def bizi(bot, update, args):
     numposte = ' '.join(args)
@@ -225,6 +246,7 @@ def bizi(bot, update, args):
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
         jsonleido = json.loads(str(f.read().decode('utf-8')))
         estado=jsonleido["estado"]
+        print(estado)
         if estado=='OPN':
             estado=' ✅'
         elif estado=='':#TODO averiguar qué estado se pone cuando una estación no está operativa
