@@ -246,7 +246,6 @@ def bizi(bot, update, args):
             bot.sendMessage(chat_id=update.message.chat_id, text='‼️<b>Error</b>‼️\nImposible contactar con el servicio del Ayuntamiento.', parse_mode='HTML')
         jsonleido = json.loads(str(f.read().decode('utf-8')))
         estado=jsonleido["estado"]
-        print(estado)
         if estado=='OPN':
             estado=' ✅'
         elif estado=='':#TODO averiguar qué estado se pone cuando una estación no está operativa
