@@ -250,16 +250,15 @@ def bizi(bot, update, args):
             estado=' ⚠️'
         bot.sendMessage(chat_id=update.message.chat_id, text='Estación número '+jsonleido["id"]+estado+'\n'+jsonleido["title"]+'\n<a href="http://overpass-turbo.eu/map.html?Q=%5Bout%3Ajson%5D%5Btimeout%3A25%5D%3B%0Aarea(3600345740)-%3E.searchArea%3B%0A(%0A%20%20node%5B%22amenity%22%3D%22bicycle_rental%22%5D%5B%22network%22%3D%22BiZi%22%5D%5B%22ref%22%3D%22'+numposte+'%22%5D(area.searchArea)%3B%0A)%3B%0Aout%20body%3B%0A%3E%3B%0Aout%20skel%20qt%3B%0A%0A%0A%0A%7B%7Bstyle%3A%20%0A%20%20node%20%7B%20color%3Ared%3B%20fill-color%3Ared%3B%20fill-opacity%3A1%3B%20text%3A%20name%3B%20%20%7D%0A%20%7D%7D">🗺 Mapa</a>\n\n🚲Bicis disponibles: '+str(jsonleido["bicisDisponibles"])+'\n🚴Anclajes disponibles: '+str(jsonleido["anclajesDisponibles"]), parse_mode='HTML', disable_web_page_preview=True)#el link del mapa hace esta query overpass (cambiar 66 por el número de poste deseado): http://overpass-turbo.eu/s/lhL
         if estado==' ⚠️':
-            paradasBiziCercanas(bot,update,str(jsonleido["geometry"]["coordinates"][0]),str(jsonleido["geometry"]["coordinates"][1]),'La estación BiZi '+jsonleido["id"]+' no está operativa')
+            paradasBiziCercanas(bot,update,str(jsonleido["geometry"]["coordinates"][0]),str(jsonleido["geometry"]["coordinates"][1]),'La estación BiZi '+jsonleido["id"]+' no está operativa',numposte)
         elif jsonleido["bicisDisponibles"]==0:
-            paradasBiziCercanas(bot,update,str(jsonleido["geometry"]["coordinates"][0]),str(jsonleido["geometry"]["coordinates"][1]),'No quedan bicis disponibles')
+            paradasBiziCercanas(bot,update,str(jsonleido["geometry"]["coordinates"][0]),str(jsonleido["geometry"]["coordinates"][1]),'No quedan bicis disponibles',numposte)
         elif jsonleido["anclajesDisponibles"]==0:
-            paradasBiziCercanas(bot,update,str(jsonleido["geometry"]["coordinates"][0]),str(jsonleido["geometry"]["coordinates"][1]),'No quedan huecos disponibles')
+            paradasBiziCercanas(bot,update,str(jsonleido["geometry"]["coordinates"][0]),str(jsonleido["geometry"]["coordinates"][1]),'No quedan huecos disponibles',numposte)
         
-def paradasBiziCercanas(bot,update,longitud,latitud,estado):
-    MAXELEMENTOS = 3#Máximo de paradas cercanas por medio de transporte, tiene que ser como mínimo 2
-    DISTANCIA = '500'#Distancia en metros desde la posición enviada, lo ponemos como string para evitarnos conversiones luego. Por contrato la más cercana tiene que estar como mucho a 300 metros, así que al poner 500 nos aseguramos de que haya al menos otra
-    url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/estacion-bicicleta.json?rf=html&results_only=false&srsname=wgs84&rows='+str(MAXELEMENTOS)+'&point='+longitud+','+latitud+'&distance='+DISTANCIA
+def paradasBiziCercanas(bot,update,longitud,latitud,estado,numposte):
+    DISTANCIA = '350'#Distancia en metros desde la posición enviada, lo ponemos como string para evitarnos conversiones luego. Por contrato la más cercana tiene que estar como mucho a 300 metros, así que al poner 350 nos aseguramos de que haya al menos otra
+    url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/estacion-bicicleta.json?rf=html&results_only=false&srsname=wgs84&point='+longitud+','+latitud+'&distance='+DISTANCIA
     try:
         h = urllib.request.urlopen(url)
     except Exception as e:
@@ -272,10 +271,9 @@ def paradasBiziCercanas(bot,update,longitud,latitud,estado):
     if nElementosbizi==0:
         textobizi='No hay estaciones BiZi a '+DISTANCIA+' metros de la ubicación\n\n'
     else:
-        if nElementosbizi>MAXELEMENTOS:
-            nElementosbizi=MAXELEMENTOS#Limitamos a 5 los resultados por medio de transporte
-        for i in range(1,nElementosbizi):#quitamos el primer resultado ya que es la estación desde la que invocamos esta función
-            textobizi = textobizi + '/bizi '+ jsonleidobizi["result"][i]["id"] + '\n' + jsonleidobizi["result"][i]["title"] + '\n\n'
+        for i in range(nElementosbizi):
+            if(jsonleidobizi["result"][i]["id"]!=numposte):#no enseñar la parada desde la que se invoca
+                textobizi = textobizi + '/bizi '+ jsonleidobizi["result"][i]["id"] + '\n' + jsonleidobizi["result"][i]["title"] + '\n\n'
     bot.sendMessage(chat_id=update.message.chat_id, text='<b>'+estado+', quizás te interesen otras estaciones cercanas:</b>\n'+textobizi, parse_mode='HTML', disable_web_page_preview=True)
         
 def help(bot, update):
