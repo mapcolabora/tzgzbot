@@ -96,7 +96,7 @@ def lintram(bot, update):
 def tram(bot, update, args):
     numposte = ' '.join(args)
     if numposte=='':
-        bot.sendMessage(chat_id=update.message.chat_id, text="Uso: /tram &lt;númerodeposte&gt;\n\nEl número de poste se saca de la siguiente manera:\nSe pone el código de la parada y seguido el sentido (1 sentido Mago de Oz, 2 sentido Av. de la Academia).\n\nCódigos de parada:\nAvenida de la Academia: <b>10</b>\nParque Goya: <b>20</b>\nJuslibol: <b>30</b>\nCampus Río Ebro: <b>40</b>\nMargarita Xirgú/Antón García Abril: <b>50</b>\nLegaz Lacambra/Adolfo Aznar: <b>60</b>\nClara Campoamor/Pablo Neruda: <b>70</b>\nRosalía de Castro/León Felipe: <b>80</b>\nMartínez Soria/María Montessori: <b>90</b>\nLa Chimenea: <b>100</b>\nPlaza del Pilar-Murallas: <b>110</b>\nCésar Augusto: <b>120</b>\nPlaza España: <b>130</b>\nPlaza Aragón: <b>131</b>\nGran Vía: <b>140</b>\nFernando el Católico-Goya: <b>150</b>\nPlaza San Francisco: <b>160</b>\nPlaza Emperador Carlos V: <b>170</b>\nRomareda: <b>180</b>\nCasablanca: <b>190</b>\nArgualas: <b>200</b>\nLos Olvidados: <b>210</b>\nLos Pájaros: <b>230</b>\nLa Ventana Indiscreta: <b>232</b>\nCantando Bajo la Lluvia: <b>240</b>\nUn Americano en París: <b>242</b>\nMago de Oz: <b>250</b>", parse_mode='HTML')
+        bot.sendMessage(chat_id=update.message.chat_id, text="Uso: /tram &lt;númerodeposte&gt;\n\nEl número de poste se saca de la siguiente manera:\nSe pone el código de la parada y seguido el sentido (1 sentido Mago de Oz, 2 sentido Av. de la Academia).\n\nEjemplo: Gran Vía sentido Mago de Oz: 140<b>1</b>\n\nCódigos de parada:\nAvenida de la Academia: <b>10</b>\nParque Goya: <b>20</b>\nJuslibol: <b>30</b>\nCampus Río Ebro: <b>40</b>\nMargarita Xirgú/Antón García Abril: <b>50</b>\nLegaz Lacambra/Adolfo Aznar: <b>60</b>\nClara Campoamor/Pablo Neruda: <b>70</b>\nRosalía de Castro/León Felipe: <b>80</b>\nMartínez Soria/María Montessori: <b>90</b>\nLa Chimenea: <b>100</b>\nPlaza del Pilar-Murallas: <b>110</b>\nCésar Augusto: <b>120</b>\nPlaza España: <b>130</b>\nPlaza Aragón: <b>131</b>\nGran Vía: <b>140</b>\nFernando el Católico-Goya: <b>150</b>\nPlaza San Francisco: <b>160</b>\nPlaza Emperador Carlos V: <b>170</b>\nRomareda: <b>180</b>\nCasablanca: <b>190</b>\nArgualas: <b>200</b>\nLos Olvidados: <b>210</b>\nLos Pájaros: <b>230</b>\nLa Ventana Indiscreta: <b>232</b>\nCantando Bajo la Lluvia: <b>240</b>\nUn Americano en París: <b>242</b>\nMago de Oz: <b>250</b>", parse_mode='HTML')
     else:
         url='http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia/'+numposte+'.json?rf=html&srsname=wgs84'
         textoleido=''
@@ -111,6 +111,7 @@ def tram(bot, update, args):
         #coordy = re.sub(r'].*',r'', textoleidocoord)
         #coordy = re.sub(r'.*,',r'', coordy)
         textoleido = re.sub(r'ESPAA',r'ESPAÑA', textoleido)#Corregir error ESPAA -> ESPAÑA
+        textoleido = re.sub(r'GRAN VA',r'GRAN VÍA', textoleido)#Corregir error GRAN VA -> GRAN VÍA
         infotram = re.sub(r'.*"mensajes":\["',r'\n', textoleido)
         infotram = re.sub(r'","',r'\n', infotram)
         infotram = re.sub(r'"](\s|\S)*',r'', infotram)
@@ -156,9 +157,6 @@ def mapatransporte(bot, update):
 
 def mapabici(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://bit.ly/Ziclabilidad">Mapa de la infraestructura ciclista en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
-
-def mapataxi(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://www.zaragoza.es/monitorTaxis/index.html">Mapa de las paradas de Taxi y taxis en tiempo real</a>', parse_mode='HTML', disable_web_page_preview=True)
 
 def ruta(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://node1.idezar.es/RutometroIDEZarApp/rutometro.jsp?language=ES">Usar el calculador de rutas del Ayuntamiento</a>', parse_mode='HTML', disable_web_page_preview=True)
@@ -297,9 +295,9 @@ updater.dispatcher.add_handler(CommandHandler('linbus', linbus, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('lintram', lintram))
 updater.dispatcher.add_handler(CommandHandler('mapatransporte', mapatransporte))
 updater.dispatcher.add_handler(CommandHandler('mapabici', mapabici))
-updater.dispatcher.add_handler(CommandHandler('mapataxi', mapataxi))
 updater.dispatcher.add_handler(CommandHandler('ruta', ruta))
 updater.dispatcher.add_handler(CommandHandler('help', help))
+updater.dispatcher.add_handler(CommandHandler('ayuda', help))#Hace lo mismo que /help
 updater.dispatcher.add_handler(CommandHandler('faq', faq))
 updater.dispatcher.add_handler(CommandHandler('start', help))
 updater.dispatcher.add_handler(MessageHandler(Filters.location|Filters.venue, busquedaParadas))
