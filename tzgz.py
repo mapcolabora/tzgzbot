@@ -115,7 +115,7 @@ def tram(bot, update, args):
         infotram = re.sub(r'.*"mensajes":\["',r'\n', textoleido)
         infotram = re.sub(r'","',r'\n', infotram)
         infotram = re.sub(r'"](\s|\S)*',r'', infotram)
-        infotram = re.sub(r'\s?www.tranviasdezaragoza.es\s*Telefono Atencion al Cliente: 902 20 50 10',r'', infotram)
+        infotram = re.sub(r'\s?www.tranviasdezaragoza.es\s*Telefono Atencion al Cliente: 900 920 700',r'', infotram)
         textoleido = re.sub(r'.*"destinos":',r'', textoleido)
         textoleido=re.sub(r'\[',r'', textoleido)
         textoleido=re.sub(r']}',r'', textoleido)
@@ -156,7 +156,7 @@ def mapatransporte(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://bit.ly/buszaragoza">Mapa del transporte público en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
 
 def mapabici(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://bit.ly/Ziclabilidad">Mapa de la infraestructura ciclista en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
+    bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://www.mapcolabora.org/Ziclabilidad">Mapa de la infraestructura ciclista en Zaragoza</a>', parse_mode='HTML', disable_web_page_preview=True)
 
 def ruta(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text='<a href="http://node1.idezar.es/RutometroIDEZarApp/rutometro.jsp?language=ES">Usar el calculador de rutas del Ayuntamiento</a>', parse_mode='HTML', disable_web_page_preview=True)
