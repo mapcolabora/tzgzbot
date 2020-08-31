@@ -1,4 +1,6 @@
 # tzgzbot
+**IMPORTANTE: ESTE BOT YA NO FUNCIONA DESDE QUE EL AYUNTAMIENTO DE ZARAGOZA CAMBIÓ SU API, SE AGRADECEN CAMBIOS PARA ACTUALIZAR EL CÓDIGO Y REVIVIR EL PROYECTO**
+
 Bot sobre el transporte público en Zaragoza, "powered by" contribuidores de OpenStreetMap y datos abiertos del Ayuntamiento de Zaragoza. Programado por @Robot8A
 
 Usa la librería python-telegram-bot, con licencia LGPLv3. https://python-telegram-bot.org/
